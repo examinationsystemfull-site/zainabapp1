@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وحدة تعليمية رقمية تفاعلية: السفر والرحلات (B1)</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        accent: {
+                            50: '#fefce8',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                        },
+                        sky: {
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        tajawal: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts: Cairo & Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase v8 (App + Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- Canvas Confetti for quiz rewards -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .waveform-bar {
+            animation: pulseHeight 0.8s infinite ease-in-out alternate;
+        }
+
+        @keyframes pulseHeight {
+            0% { height: 6px; }
+            100% { height: 28px; }
+        }
+
+        /* ===== Loading Spinners (متجاوبة) ===== */
+        .spinner {
+            display: inline-block; width: 1.1rem; height: 1.1rem; vertical-align: middle;
+            border: 3px solid rgba(255, 255, 255, 0.2); border-top-color: #10b981;
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        .spinner-lg { width: 3.25rem; height: 3.25rem; border-width: 5px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 640px) { .spinner-lg { width: 2.5rem; height: 2.5rem; border-width: 4px; } }
+        @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.5s; } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #059669;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-100 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-40 glass-nav px-4 lg:px-8 py-3.5 transition-all">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-brand-600/30">
+                        <i class="fa-solid font-bold fa-plane-departure text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-lg md:text-xl text-white tracking-tight leading-none">
+                            السفر والرحلات <span class="text-xs px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30">B1</span>
+                        </h1>
+                        <p class="text-xs text-slate-400 mt-1">وحدة تعليمية رقمية تفاعلية لتطوير مهارة المحادثة والتحدث</p>
+                    </div>
+                </div>
+                <button onclick="toggleOnboardingModal(true)" class="md:hidden text-slate-300 hover:text-white text-lg p-2">
+                    <i class="fa-solid fa-circle-info"></i>
+                </button>
+            </div>
+
+            <!-- Global Action Header Tools -->
+            <div class="flex items-center gap-2.5 w-full md:w-auto justify-end">
+                <button onclick="toggleOnboardingModal(true)" class="hidden md:flex items-center gap-2 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
+                    <i class="fa-solid fa-circle-question text-brand-400"></i>
+                    دليل الوحدة والأهداف
+                </button>
+                <div class="flex items-center gap-2 bg-slate-900/60 border border-slate-700/80 rounded-lg px-3 py-1.5">
+                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+                    <span class="text-xs font-bold text-slate-200">النقاط: <span id="global-score" class="text-brand-400">0</span>/100</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN NAVIGATION TABS -->
+    <nav class="bg-slate-900/40 border-b border-slate-800 px-4 py-2 sticky top-[65px] z-30 overflow-x-auto">
+        <div class="max-w-7xl mx-auto flex items-center gap-2 min-w-max">
+            <button onclick="switchTab('lesson-1')" id="tab-btn-lesson-1" class="tab-btn active-tab px-4 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 transition bg-brand-600 text-white shadow-md">
+                <i class="fa-solid fa-plane-arrival"></i>
+                الدرس 1: في المطار
+            </button>
+            <button onclick="switchTab('lesson-2')" id="tab-btn-lesson-2" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+                <i class="fa-solid fa-hotel"></i>
+                الدرس 2: في الفندق
+            </button>
+            <button onclick="switchTab('lesson-3')" id="tab-btn-lesson-3" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+                <i class="fa-solid fa-store"></i>
+                الدرس 3: في السوق
+            </button>
+            <button onclick="switchTab('lesson-4')" id="tab-btn-lesson-4" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+                <i class="fa-solid fa-book-open"></i>
+                الدرس 4: احكِ رحلتك
+            </button>
+            <div class="h-5 w-[1px] bg-slate-700 mx-1"></div>
+            <button onclick="switchTab('assessment')" id="tab-btn-assessment" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+                <i class="fa-solid fa-clipboard-check text-sky-400"></i>
+                التقييم القبلي والبعدي
+            </button>
+            <button onclick="switchTab('feedback')" id="tab-btn-feedback" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 transition bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white">
+                <i class="fa-solid fa-star text-amber-400"></i>
+                استبيان الرأي
+            </button>
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2 transition bg-purple-900/40 text-purple-200 border border-purple-500/30 hover:bg-purple-800/60">
+                <i class="fa-solid fa-chart-line text-purple-300"></i>
+                لوحة متابعة المعلم
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTAINER BODY -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8">
+
+        <!-- ==================== LESSON 1: AT THE AIRPORT ==================== -->
+        <section id="tab-lesson-1" class="tab-content space-y-8">
+            <!-- Lesson Header Banner -->
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute -left-10 -bottom-10 opacity-10 text-brand-400 pointer-events-none">
+                    <i class="fa-solid fa-plane text-9xl"></i>
+                </div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30">الدرس الأول</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-white mt-2">في المطار (At the Airport)</h2>
+                        <p class="text-slate-300 text-sm mt-1 max-w-2xl">
+                            ستتعلم في هذا الدرس المصطلحات والعبارات الخاصة بحجز التذاكر، إجراءات التسجيل بالمطار، والرد على أسئلة موظف الجوازات بثقة.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700/80">
+                        <i class="fa-solid fa-bullhorn text-brand-400 text-xl"></i>
+                        <div class="text-xs">
+                            <p class="text-slate-400">هدف التحدث الرئيسية:</p>
+                            <p class="font-bold text-slate-200">إجراء حوار إنجاز إجراءات السفر في المطار</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Context Audio / Dialogue Audio Simulation -->
+            <div class="glass-card rounded-2xl p-6 border-r-4 border-r-brand-500">
+                <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-play text-brand-400"></i>
+                    1. الاستماع للسياق (المحاكاة الصوتية للتسجيل بالمطار)
+                </h3>
+                <p class="text-xs text-slate-300 mb-4">استمع إلى الحوار النموذجي بين المسافر وموظف المطار، وحاول الترديد خلفهم:</p>
+                
+                <div class="bg-slate-900/70 rounded-xl p-4 space-y-3">
+                    <div class="flex items-start justify-between gap-4 p-2.5 rounded-lg bg-slate-800/40">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-blue-600/30 text-blue-300 border border-blue-500/30 flex items-center justify-center font-bold text-xs">موظف</span>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-100">مرحباً بك! هل يمكنني رؤية جواز السفر وتذكرة الطيران؟</p>
+                                <p class="text-xs text-slate-400">Welcome! May I see your passport and flight ticket?</p>
+                            </div>
+                        </div>
+                        <button onclick="speakText('مرحباً بك! هل يمكنني رؤية جواز السفر وتذكرة الطيران؟')" class="text-slate-400 hover:text-brand-400 transition p-2">
+                            <i class="fa-solid fa-volume-high text-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-start justify-between gap-4 p-2.5 rounded-lg bg-slate-800/40">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-brand-600/30 text-brand-300 border border-brand-500/30 flex items-center justify-center font-bold text-xs">مسافر</span>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-100">أهلاً بك، تفضل جواز السفر والتذكرة. أود مقعداً بجوار النافذة من فضلك.</p>
+                                <p class="text-xs text-slate-400">Hello, here is my passport and ticket. I'd like a window seat please.</p>
+                            </div>
+                        </div>
+                        <button onclick="speakText('أهلاً بك، تفضل جواز السفر والتذكرة. أود مقعداً بجوار النافذة من فضلك.')" class="text-slate-400 hover:text-brand-400 transition p-2">
+                            <i class="fa-solid fa-volume-high text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Vocabulary Grid -->
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-amber-400"></i>
+                    2. المفردات والبطاقات التفاعلية (اضغط على البطاقة للاستماع)
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="vocab-cards-l1">
+                    <!-- Dynamic Vocab inserted via JS -->
+                </div>
+            </div>
+
+            <!-- Role-Play Simulator -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-sky-400"></i>
+                    3. نشاط المحاكاة والمحاورة (Role-Play Scenario)
+                </h3>
+                <p class="text-xs text-slate-300 mb-6">أنت الآن في المطار أمام الموظف. استمع لمطلب الموظف ثم سجّل ردك الصوتي المفصل:</p>
+
+                <div class="bg-slate-900/80 rounded-xl p-5 border border-slate-700/80 space-y-4">
+                    <div class="flex items-center gap-4 bg-slate-800/80 p-4 rounded-xl">
+                        <div class="w-12 h-12 rounded-full bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-300 text-xl font-bold">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <span class="text-xs text-blue-400 font-semibold">سؤال الموظف (المحاكاة):</span>
+                            <p class="text-base font-bold text-white">"كم حقيبة لديك لتسجيلها؟ وهل تحمل أية مواد خطرة؟"</p>
+                        </div>
+                        <button onclick="speakText('كم حقيبة لديك لتسجيلها؟ وهل تحمل أية مواد خطرة؟')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
+                            <i class="fa-solid fa-volume-high"></i> استمع
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-4 rounded-xl border border-dashed border-slate-700">
+                        <span class="text-xs text-brand-400 font-bold block mb-1">إرشادات الإجابة المتوقعة (المستوى B1):</span>
+                        <p class="text-xs text-slate-300">
+                            أجب بعبارة كاملة، مثل: "معي حقيبتان شحن وحقيبة يد واحدة، ولا أحمل أي مواد خطرة."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Recorder Module -->
+            <div class="glass-card rounded-2xl p-6 border border-brand-500/30 bg-gradient-to-br from-slate-900/90 to-brand-950/30">
+                <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-microphone-lines text-brand-400"></i>
+                    4. مسجل الصوت التفاعلي (سجل إجابتك هنا)
+                </h3>
+                
+                <div class="flex flex-col items-center justify-center py-6 space-y-4">
+                    <!-- Status Header -->
+                    <div id="recorder-status-l1" class="text-sm font-semibold text-slate-300">جاهز للتسجيل</div>
+                    
+                    <!-- Timer -->
+                    <div id="timer-l1" class="text-3xl font-mono font-bold text-brand-400 tracking-wider">00:00</div>
+
+                    <!-- Audio Waveform Visualization Simulation -->
+                    <div id="waveform-l1" class="flex items-center gap-1.5 h-10 my-2 opacity-40">
+                        <div class="w-1.5 bg-brand-500 rounded-full h-2"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-3"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-5"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-2"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-6"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-4"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-2"></div>
+                    </div>
+
+                    <!-- Recorder Buttons -->
+                    <div class="flex items-center gap-4">
+                        <button id="btn-start-l1" onclick="startRecording('l1')" class="bg-brand-600 hover:bg-brand-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-brand-600/40 text-xl transition transform hover:scale-105">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                        <button id="btn-stop-l1" onclick="stopRecording('l1')" disabled class="bg-red-600 opacity-50 cursor-not-allowed hover:bg-red-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg text-lg transition">
+                            <i class="fa-solid fa-square"></i>
+                        </button>
+                    </div>
+
+                    <!-- Audio Playback Container -->
+                    <div id="audio-playback-container-l1" class="w-full max-w-md hidden pt-4 border-t border-slate-700/80">
+                        <p class="text-xs text-brand-300 font-bold mb-2">استمع إلى تسجيلك الصوتي:</p>
+                        <audio id="audio-preview-l1" controls class="w-full rounded-lg bg-slate-800"></audio>
+                        <div class="flex justify-between items-center mt-3 text-xs">
+                            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> تم حفظ التسجيل في ملف المتابعة</span>
+                            <button onclick="resetRecorder('l1')" class="text-slate-400 hover:text-slate-200">إعادة التسجيل</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-purple-400"></i>
+                    5. التحقق السريع من الفهم (اختبار الدرس الأول)
+                </h3>
+                <div id="quiz-container-l1" class="space-y-6">
+                    <!-- Dynamic Quiz Loaded via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== LESSON 2: AT THE HOTEL ==================== -->
+        <section id="tab-lesson-2" class="tab-content hidden space-y-8">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute -left-10 -bottom-10 opacity-10 text-brand-400 pointer-events-none">
+                    <i class="fa-solid fa-hotel text-9xl"></i>
+                </div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30">الدرس الثاني</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-white mt-2">في الفندق (At the Hotel)</h2>
+                        <p class="text-slate-300 text-sm mt-1 max-w-2xl">
+                            تعلّم كيفية تأكيد الحجز الفندقي، طلب الخدمات الإضافية، والصياغة المهذبة الشفهية للشكاوى أو التعديلات.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700/80">
+                        <i class="fa-solid fa-key text-brand-400 text-xl"></i>
+                        <div class="text-xs">
+                            <p class="text-slate-400">هدف التحدث:</p>
+                            <p class="font-bold text-slate-200">حجز غرفة والتعامل مع موظف الاستقبال</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio Intro -->
+            <div class="glass-card rounded-2xl p-6 border-r-4 border-r-brand-500">
+                <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-play text-brand-400"></i>
+                    1. حوار موظف الاستقبال والمقيم
+                </h3>
+                <div class="bg-slate-900/70 rounded-xl p-4 space-y-3">
+                    <div class="flex items-start justify-between gap-4 p-2.5 rounded-lg bg-slate-800/40">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-purple-600/30 text-purple-300 border border-purple-500/30 flex items-center justify-center font-bold text-xs">استقبال</span>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-100">مساء الخير، مرحباً بك في فندق الياسمين. كيف يمكنني مساعدتك؟</p>
+                                <p class="text-xs text-slate-400">Good evening, welcome to Al-Yasmeen Hotel. How can I help you?</p>
+                            </div>
+                        </div>
+                        <button onclick="speakText('مساء الخير، مرحباً بك في فندق الياسمين. كيف يمكنني مساعدتك؟')" class="text-slate-400 hover:text-brand-400 p-2">
+                            <i class="fa-solid fa-volume-high text-lg"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-start justify-between gap-4 p-2.5 rounded-lg bg-slate-800/40">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-brand-600/30 text-brand-300 border border-brand-500/30 flex items-center justify-center font-bold text-xs">نزيل</span>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-100">مساء النور، لدي حجز مسبق باسم أحمد. أود غرفة مزدوجة مطلة على البحر.</p>
+                                <p class="text-xs text-slate-400">Good evening, I have a reservation under the name Ahmed. I'd like a double room with a sea view.</p>
+                            </div>
+                        </div>
+                        <button onclick="speakText('مساء النور، لدي حجز مسبق باسم أحمد. أود غرفة مزدوجة مطلة على البحر.')" class="text-slate-400 hover:text-brand-400 p-2">
+                            <i class="fa-solid fa-volume-high text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vocab -->
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-amber-400"></i>
+                    2. بطاقات المفردات والخدمات الفندقية
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="vocab-cards-l2">
+                    <!-- Dynamic Inserted -->
+                </div>
+            </div>
+
+            <!-- Role-Play -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-sky-400"></i>
+                    3. موقف المحادثة والتحدث: تقديم شكوى مهذبة
+                </h3>
+                <p class="text-xs text-slate-300 mb-4">التكيف مع المشكلات: التكييف في غرفتك لا يعمل بشكل جيد. تحدث موضحاً المشكلة للموظف:</p>
+                <div class="bg-slate-900/80 rounded-xl p-5 border border-slate-700/80 space-y-3">
+                    <div class="flex items-center justify-between bg-slate-800/80 p-3 rounded-lg">
+                        <span class="text-sm font-bold text-white">الموقف الشفهي المطلوب:</span>
+                        <button onclick="speakText('عذراً، المكيف في الغرفة لا يعمل بشكل جيد، هل يمكن إرسال الفني أو تغيير الغرفة؟')" class="text-brand-400 hover:underline text-xs flex items-center gap-1">
+                            <i class="fa-solid fa-volume-high"></i> نموذج الجملة
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        عبّر بصوتك متضمناً: رقم الغرفة (مثال: 302)، تحديد العطل (المكيف / التدفئة / التلفاز)، والمطالبة بالحل المهذب.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Voice Recorder L2 -->
+            <div class="glass-card rounded-2xl p-6 border border-brand-500/30 bg-gradient-to-br from-slate-900/90 to-brand-950/30">
+                <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-microphone-lines text-brand-400"></i>
+                    4. مسجل الصوت التفاعلي (مواقف الفندق)
+                </h3>
+                <div class="flex flex-col items-center justify-center py-6 space-y-4">
+                    <div id="recorder-status-l2" class="text-sm font-semibold text-slate-300">جاهز للتسجيل</div>
+                    <div id="timer-l2" class="text-3xl font-mono font-bold text-brand-400 tracking-wider">00:00</div>
+                    <div id="waveform-l2" class="flex items-center gap-1.5 h-10 my-2 opacity-40">
+                        <div class="w-1.5 bg-brand-500 rounded-full h-2"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-4"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-6"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-3"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-5"></div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="btn-start-l2" onclick="startRecording('l2')" class="bg-brand-600 hover:bg-brand-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-brand-600/40 text-xl transition transform hover:scale-105">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                        <button id="btn-stop-l2" onclick="stopRecording('l2')" disabled class="bg-red-600 opacity-50 cursor-not-allowed hover:bg-red-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg text-lg transition">
+                            <i class="fa-solid fa-square"></i>
+                        </button>
+                    </div>
+                    <div id="audio-playback-container-l2" class="w-full max-w-md hidden pt-4 border-t border-slate-700/80">
+                        <p class="text-xs text-brand-300 font-bold mb-2">استمع إلى تسجيلك الصوتي:</p>
+                        <audio id="audio-preview-l2" controls class="w-full rounded-lg bg-slate-800"></audio>
+                        <div class="flex justify-between items-center mt-3 text-xs">
+                            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> تم حفظ التسجيل</span>
+                            <button onclick="resetRecorder('l2')" class="text-slate-400 hover:text-slate-200">إعادة التسجيل</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz L2 -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-purple-400"></i>
+                    5. التحقق السريع من الفهم (اختبار الفندق)
+                </h3>
+                <div id="quiz-container-l2" class="space-y-6"></div>
+            </div>
+        </section>
+
+        <!-- ==================== LESSON 3: AT THE MARKET ==================== -->
+        <section id="tab-lesson-3" class="tab-content hidden space-y-8">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute -left-10 -bottom-10 opacity-10 text-brand-400 pointer-events-none">
+                    <i class="fa-solid fa-store text-9xl"></i>
+                </div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30">الدرس الثالث</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-white mt-2">في السوق (At the Market)</h2>
+                        <p class="text-slate-300 text-sm mt-1 max-w-2xl">
+                            تعلم أسلوب المساومة والتفاوض على الأسعار والتعبير عن الإعجاب أو استغلاء المنتجات باللغة العربية.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700/80">
+                        <i class="fa-solid fa-tags text-brand-400 text-xl"></i>
+                        <div class="text-xs">
+                            <p class="text-slate-400">هدف التحدث:</p>
+                            <p class="font-bold text-slate-200">التفاوض على السعر والشراء</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio Intro -->
+            <div class="glass-card rounded-2xl p-6 border-r-4 border-r-brand-500">
+                <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-play text-brand-400"></i>
+                    1. محاكاة التسوق والتفاوض (Bargaining Dialogue)
+                </h3>
+                <div class="bg-slate-900/70 rounded-xl p-4 space-y-3">
+                    <div class="flex items-start justify-between gap-4 p-2.5 rounded-lg bg-slate-800/40">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-amber-600/30 text-amber-300 border border-amber-500/30 flex items-center justify-center font-bold text-xs">البائع</span>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-100">هذا السجاد مصنوع يدوياً من الصوف الخالص، وسعره 200 دينار فقط!</p>
+                                <p class="text-xs text-slate-400">This carpet is handmade from pure wool, priced at only 200 Dinars!</p>
+                            </div>
+                        </div>
+                        <button onclick="speakText('هذا السجاد مصنوع يدوياً من الصوف الخالص، وسعره مائتا دينار فقط!')" class="text-slate-400 hover:text-brand-400 p-2">
+                            <i class="fa-solid fa-volume-high text-lg"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-start justify-between gap-4 p-2.5 rounded-lg bg-slate-800/40">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-brand-600/30 text-brand-300 border border-brand-500/30 flex items-center justify-center font-bold text-xs">المشتري</span>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-100">هذا غالي جداً! هل يمكنك تخفيض السعر إلى 150 ديناراً؟</p>
+                                <p class="text-xs text-slate-400">That's too expensive! Can you reduce the price to 150 Dinars?</p>
+                            </div>
+                        </div>
+                        <button onclick="speakText('هذا غالي جداً! هل يمكنك تخفيض السعر إلى مائة وخمسين ديناراً؟')" class="text-slate-400 hover:text-brand-400 p-2">
+                            <i class="fa-solid fa-volume-high text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vocab Cards -->
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-cubes text-amber-400"></i>
+                    2. عبارات المساومة والتسوق
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="vocab-cards-l3"></div>
+            </div>
+
+            <!-- Role Play -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-sky-400"></i>
+                    3. محاكاة المساومة والشراء (Bargaining Role-play)
+                </h3>
+                <p class="text-xs text-slate-300 mb-4">يقول البائع: "الهدية التذكارية بـ 80 ريالاً". حاور البائع شفهياً لتخفيض السعر لشراء قطعتين!</p>
+                <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-700/80 space-y-2 text-xs">
+                    <p class="text-slate-200 font-bold">تلميح العبارات:</p>
+                    <ul class="list-disc list-inside text-slate-300 space-y-1">
+                        <li>"كم آخر سعر للمجموعتين؟"</li>
+                        <li>"هل توجد خصومات على الكميات؟"</li>
+                        <li>"سآخذ الاثنين بـ 120 ريالاً، ما رأيك؟"</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Voice Recorder L3 -->
+            <div class="glass-card rounded-2xl p-6 border border-brand-500/30 bg-gradient-to-br from-slate-900/90 to-brand-950/30">
+                <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-microphone-lines text-brand-400"></i>
+                    4. مسجل الصوت (مواقف المساومة)
+                </h3>
+                <div class="flex flex-col items-center justify-center py-6 space-y-4">
+                    <div id="recorder-status-l3" class="text-sm font-semibold text-slate-300">جاهز للتسجيل</div>
+                    <div id="timer-l3" class="text-3xl font-mono font-bold text-brand-400 tracking-wider">00:00</div>
+                    <div id="waveform-l3" class="flex items-center gap-1.5 h-10 my-2 opacity-40">
+                        <div class="w-1.5 bg-brand-500 rounded-full h-3"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-5"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-2"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-6"></div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="btn-start-l3" onclick="startRecording('l3')" class="bg-brand-600 hover:bg-brand-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-brand-600/40 text-xl transition transform hover:scale-105">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                        <button id="btn-stop-l3" onclick="stopRecording('l3')" disabled class="bg-red-600 opacity-50 cursor-not-allowed hover:bg-red-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg text-lg transition">
+                            <i class="fa-solid fa-square"></i>
+                        </button>
+                    </div>
+                    <div id="audio-playback-container-l3" class="w-full max-w-md hidden pt-4 border-t border-slate-700/80">
+                        <p class="text-xs text-brand-300 font-bold mb-2">استمع إلى تسجيلك الصوتي:</p>
+                        <audio id="audio-preview-l3" controls class="w-full rounded-lg bg-slate-800"></audio>
+                        <div class="flex justify-between items-center mt-3 text-xs">
+                            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> تم حفظ التسجيل</span>
+                            <button onclick="resetRecorder('l3')" class="text-slate-400 hover:text-slate-200">إعادة التسجيل</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz L3 -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-purple-400"></i>
+                    5. التحقق السريع من الفهم (اختبار السوق)
+                </h3>
+                <div id="quiz-container-l3" class="space-y-6"></div>
+            </div>
+        </section>
+
+        <!-- ==================== LESSON 4: TELL YOUR STORY ==================== -->
+        <section id="tab-lesson-4" class="tab-content hidden space-y-8">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute -left-10 -bottom-10 opacity-10 text-brand-400 pointer-events-none">
+                    <i class="fa-solid fa-book-open text-9xl"></i>
+                </div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30">الدرس الرابع</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-white mt-2">احكِ رحلتك (Tell Your Story)</h2>
+                        <p class="text-slate-300 text-sm mt-1 max-w-2xl">
+                            التطوير السردي وسرد الأحداث في الماضي باستخدام أدوات الربط (أولاً، بعد ذلك، أخيراً) والمشاعر.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700/80">
+                        <i class="fa-solid fa-pen-nib text-brand-400 text-xl"></i>
+                        <div class="text-xs">
+                            <p class="text-slate-400">هدف التحدث:</p>
+                            <p class="font-bold text-slate-200">عرض شفهي متصل لمدة 60 ثانية</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connectors & Narrative Guide -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-diagram-project text-brand-400"></i>
+                    1. هيكل السرد وأدوات الربط الزمني
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <span class="text-xs font-bold text-brand-400 block mb-1">بداية القصة</span>
+                        <h4 class="text-base font-bold text-white">"في العام الماضي، سافرتُ إلى..."</h4>
+                        <button onclick="speakText('في العام الماضي، سافرتُ إلى مدينة تاريخية جميلة')" class="text-xs text-slate-400 hover:text-brand-400 mt-2">
+                            <i class="fa-solid fa-volume-high"></i> استمع
+                        </button>
+                    </div>
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <span class="text-xs font-bold text-amber-400 block mb-1">تسلسل الأحداث</span>
+                        <h4 class="text-base font-bold text-white">"أولاً... ثم بعد ذلك... وفي اليوم التالي..."</h4>
+                        <button onclick="speakText('أولاً قمنا بزيارة المتاحف، ثم بعد ذلك تجولنا في الأسواق القديمة')" class="text-xs text-slate-400 hover:text-brand-400 mt-2">
+                            <i class="fa-solid fa-volume-high"></i> استمع
+                        </button>
+                    </div>
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <span class="text-xs font-bold text-sky-400 block mb-1">الخاتمة والانطباع</span>
+                        <h4 class="text-base font-bold text-white">"أخيراً، كانت رحلة ممتعة ولن أنساها لأن..."</h4>
+                        <button onclick="speakText('أخيراً، كانت رحلة ممتعة جداً ولن أنساها لأن الأجواء كانت رائعة')" class="text-xs text-slate-400 hover:text-brand-400 mt-2">
+                            <i class="fa-solid fa-volume-high"></i> استمع
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1-Min Presentation Assignment -->
+            <div class="glass-card rounded-2xl p-6 border-2 border-brand-500/40 bg-slate-900/90">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-amber-400"></i>
+                        2. التكليف التحدثي الرئيس: عرض رحلتي المفضلة (60 ثانية)
+                    </h3>
+                    <span class="text-xs bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30">مهمة أساسية</span>
+                </div>
+                <p class="text-xs text-slate-300 mb-6">
+                    سجل مقطعاً صوتياً مستمراً مدته دقيقة واحدة تتحدث فيه عن رحلة قمت بها سابقاً. استخدم زمن الماضي وأدوات الربط التي تعلمتها.
+                </p>
+
+                <!-- Voice Recorder L4 -->
+                <div class="flex flex-col items-center justify-center py-4 space-y-4">
+                    <div id="recorder-status-l4" class="text-sm font-semibold text-slate-300">جاهز لبدء العرض التقديمي (دقيقة واحدة)</div>
+                    <div id="timer-l4" class="text-4xl font-mono font-bold text-brand-400 tracking-wider">01:00</div>
+                    <div id="waveform-l4" class="flex items-center gap-1.5 h-10 my-2 opacity-40">
+                        <div class="w-1.5 bg-brand-500 rounded-full h-3"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-6"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-4"></div>
+                        <div class="w-1.5 bg-brand-500 rounded-full h-7"></div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="btn-start-l4" onclick="startRecording('l4')" class="bg-brand-600 hover:bg-brand-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-brand-600/40 text-xl transition transform hover:scale-105">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                        <button id="btn-stop-l4" onclick="stopRecording('l4')" disabled class="bg-red-600 opacity-50 cursor-not-allowed hover:bg-red-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg text-lg transition">
+                            <i class="fa-solid fa-square"></i>
+                        </button>
+                    </div>
+                    <div id="audio-playback-container-l4" class="w-full max-w-md hidden pt-4 border-t border-slate-700/80">
+                        <p class="text-xs text-brand-300 font-bold mb-2">استمع إلى عرضك الصوتي الكامل:</p>
+                        <audio id="audio-preview-l4" controls class="w-full rounded-lg bg-slate-800"></audio>
+                        <div class="flex justify-between items-center mt-3 text-xs">
+                            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> تم تسليم العرض الشفهي بنجاح</span>
+                            <button onclick="resetRecorder('l4')" class="text-slate-400 hover:text-slate-200">إعادة السرد</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz L4 -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-purple-400"></i>
+                    3. التحقق السريع من الفهم (اختبار السرد)
+                </h3>
+                <div id="quiz-container-l4" class="space-y-6"></div>
+            </div>
+        </section>
+
+        <!-- ==================== PRE / POST ASSESSMENT ==================== -->
+        <section id="tab-assessment" class="tab-content hidden space-y-8">
+            <div class="glass-card rounded-2xl p-6">
+                <h2 class="text-2xl font-black text-white mb-2 flex items-center gap-3">
+                    <i class="fa-solid fa-clipboard-check text-sky-400"></i>
+                    التقييم التشخيصي والنهائي لمستوى التحدث (Assessment Module)
+                </h2>
+                <p class="text-xs text-slate-300 mb-6">
+                    قم بالإجابة على المهام الشفهية الخمس التالية لتقييم مدى تطور طلاقتك، مفرداتك، وقواعدك في مواقف السفر.
+                </p>
+
+                <!-- Rubric Info Header -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                        <span class="text-xs text-slate-400 block">الطلاقة (Fluency)</span>
+                        <span class="text-xs font-bold text-brand-400">التحدث بدون تردد زائد</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                        <span class="text-xs text-slate-400 block">المفردات (Vocabulary)</span>
+                        <span class="text-xs font-bold text-amber-400">استخدام المصطلحات الدقيقة</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                        <span class="text-xs text-slate-400 block">النطق (Pronunciation)</span>
+                        <span class="text-xs font-bold text-sky-400">وضوح الحروف والأصوات</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                        <span class="text-xs text-slate-400 block">القواعد (Grammar)</span>
+                        <span class="text-xs font-bold text-purple-400">صحة الجمل والتراكيب</span>
+                    </div>
+                </div>
+
+                <!-- 5 Prompts -->
+                <div class="space-y-4" id="assessment-prompts-container">
+                    <!-- Dynamic Prompts Inserted -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== FEEDBACK SURVEY ==================== -->
+        <section id="tab-feedback" class="tab-content hidden space-y-8">
+            <div class="glass-card rounded-2xl p-6 max-w-3xl mx-auto">
+                <h2 class="text-2xl font-black text-white mb-2 flex items-center gap-3">
+                    <i class="fa-solid fa-heart text-pink-500"></i>
+                    استبيان رأي المتعلم (Student Feedback Survey)
+                </h2>
+                <p class="text-xs text-slate-300 mb-6">
+                    يهمنا رأيك لتطوير الوحدة التعليمية التفاعلية. يرجى تقييم تجاربك التالية من 1 (ضعيف) إلى 5 (ممتاز):
+                </p>
+
+                <form id="feedback-form" onsubmit="handleFeedbackSubmit(event)" class="space-y-6">
+                    <!-- Q1 -->
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <label class="block text-sm font-bold text-slate-100 mb-3">1. مدى سهولة وتجاوب واجهة المستخدم للوحدة الرقمية؟</label>
+                        <div class="flex items-center justify-between max-w-xs mx-auto text-xl">
+                            <template id="likert-template">
+                                <!-- Reusable items -->
+                            </template>
+                            <div class="flex gap-4 items-center justify-center w-full" id="q1-ratings">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <label class="block text-sm font-bold text-slate-100 mb-3">2. مدى زيادة ثقتك في التحدث باللغة العربية بعد الأنشطة التفاعلية؟</label>
+                        <div class="flex gap-4 items-center justify-center w-full" id="q2-ratings"></div>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <label class="block text-sm font-bold text-slate-100 mb-3">3. جودة وفائدة أداة التسجيل الصوتي والمحاكاة التفاعلية؟</label>
+                        <div class="flex gap-4 items-center justify-center w-full" id="q3-ratings"></div>
+                    </div>
+
+                    <!-- Text comments -->
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <label class="block text-sm font-bold text-slate-100 mb-2">ملاحظات أو اقتراحات إضافية للتطوير:</label>
+                        <textarea id="feedback-comments" maxlength="500" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-slate-500" placeholder="اكتب اقتراحاتك هنا..."></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-paper-plane"></i> إرسال الاستبيان
+                    </button>
+                </form>
+
+                <div id="survey-success-message" class="hidden bg-emerald-500/20 border border-emerald-500/40 p-4 rounded-xl text-center space-y-2 mt-4">
+                    <i class="fa-solid fa-circle-check text-emerald-400 text-3xl"></i>
+                    <h4 class="text-base font-bold text-white">تم إرسال رأيك بنجاح!</h4>
+                    <p class="text-xs text-slate-300">شكراً لك على المساهمة في تطوير التجربة التعليمية.</p>
+                    <a id="wa-fallback-link" href="#" target="_blank" rel="noopener" class="hidden inline-flex items-center gap-2 text-xs font-bold text-emerald-300 hover:text-emerald-200 underline"><i class="fa-brands fa-whatsapp"></i> إرسال الاستبيان إلى المعلم عبر واتساب</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TEACHER DASHBOARD ==================== -->
+        <section id="tab-dashboard" class="tab-content hidden space-y-8">
+            <!-- بوابة الدخول بكلمة المرور -->
+            <div id="dashboard-login" class="glass-card rounded-2xl p-6 max-w-md mx-auto w-full">
+                <h2 class="text-xl font-black text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-lock text-purple-400"></i> دخول لوحة المعلم</h2>
+                <p class="text-xs text-slate-300 mb-4">هذه اللوحة محمية، أدخل كلمة المرور للمتابعة.</p>
+                <form id="teacher-login-form" onsubmit="handleTeacherLogin(event)" class="space-y-3" autocomplete="off">
+                    <input id="teacher-password-input" type="password" required autocomplete="current-password" placeholder="كلمة المرور" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-slate-500">
+                    <p id="teacher-login-error" role="alert" class="hidden text-xs text-rose-400 font-bold"></p>
+                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>
+                </form>
+            </div>
+
+            <div id="dashboard-content" class="hidden space-y-8">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <span class="text-xs bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">خاص بالمعلم / المشرف</span>
+                        <h2 class="text-2xl font-black text-white mt-1 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-purple-400"></i>
+                            لوحة متابعة أداء الطالب والمجموعات (Observation Dashboard)
+                        </h2>
+                    </div>
+                    <button onclick="exportTeacherSummary()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> تصدير تقرير التقييم (Summary)
+                    </button>
+                </div>
+
+                <!-- Stats Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+                            <span>إجمالي التسجيلات المحفوظة</span>
+                            <i class="fa-solid fa-microphone text-brand-400"></i>
+                        </div>
+                        <div id="dash-audio-count" class="text-2xl font-black text-white">0 / 4</div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div id="dash-audio-progress" class="bg-brand-500 h-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+                            <span>متوسط درجات الاختبارات</span>
+                            <i class="fa-solid fa-trophy text-amber-400"></i>
+                        </div>
+                        <div id="dash-quiz-avg" class="text-2xl font-black text-white">0%</div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div id="dash-quiz-progress" class="bg-amber-400 h-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+                            <span>الدروس المكتملة</span>
+                            <i class="fa-solid fa-check-double text-sky-400"></i>
+                        </div>
+                        <div id="dash-lessons-completed" class="text-2xl font-black text-white">0 / 4</div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div id="dash-lessons-progress" class="bg-sky-400 h-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                        <div class="flex items-center justify-between text-slate-400 text-xs mb-1">
+                            <span>التقييم القبلي/البعدي</span>
+                            <i class="fa-solid fa-clipboard-list text-purple-400"></i>
+                        </div>
+                        <div id="dash-assessment-status" class="text-2xl font-black text-white">0 / 5</div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div id="dash-assessment-progress" class="bg-purple-400 h-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- إعدادات المعلم: كلمة المرور + رقم واتساب -->
+                <div class="flex justify-end mb-3">
+                    <button type="button" onclick="lockDashboard()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-2"><i class="fa-solid fa-lock"></i> قفل اللوحة</button>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+                    <form id="change-password-form" onsubmit="handleChangePassword(event)" class="bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-3" autocomplete="off">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-key text-amber-400"></i> تغيير كلمة مرور المعلم</h3>
+                        <input id="cp-current" type="password" required autocomplete="current-password" placeholder="كلمة المرور الحالية" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-slate-500">
+                        <input id="cp-new" type="password" required minlength="3" autocomplete="new-password" placeholder="كلمة المرور الجديدة (3 أحرف على الأقل)" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-slate-500">
+                        <input id="cp-confirm" type="password" required minlength="3" autocomplete="new-password" placeholder="تأكيد كلمة المرور الجديدة" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-slate-500">
+                        <p id="change-password-msg" role="alert" class="hidden text-xs font-bold"></p>
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 rounded-lg transition">تحديث كلمة المرور</button>
+                    </form>
+                    <form id="whatsapp-form" onsubmit="handleSaveWhatsapp(event)" class="bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-3">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-400"></i> رقم واتساب المعلم</h3>
+                        <p class="text-[11px] text-slate-400">لاستقبال الاستبيانات والتكليفات. اكتب الرقم بالصيغة الدولية بدون + أو أصفار (مثال: 201012345678).</p>
+                        <input id="wa-number-input" type="tel" dir="ltr" inputmode="numeric" required placeholder="201012345678" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-slate-500 text-left">
+                        <p id="wa-current" class="text-[11px] text-slate-400"></p>
+                        <p id="whatsapp-msg" role="alert" class="hidden text-xs font-bold"></p>
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 rounded-lg transition">حفظ الرقم</button>
+                    </form>
+                </div>
+
+                <!-- Saved Audios List -->
+                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+                    <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-brand-400"></i>
+                        سجل التكليفات الصوتية للطالب (Recorded Audio Submissions)
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs text-slate-300">
+                            <thead class="bg-slate-800/80 text-slate-400 font-bold">
+                                <tr>
+                                    <th class="p-3 rounded-r-lg">الدرس / المهمة</th>
+                                    <th class="p-3">حالة التسجيل</th>
+                                    <th class="p-3">وقت التسجيل</th>
+                                    <th class="p-3 rounded-l-lg">معاينة وتشغيل</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-audio-table-body" class="divide-y divide-slate-800">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- تكليفات الطلاب المحفوظة (الاسم + النتائج) -->
+                    <div class="flex items-center justify-between mt-8 mb-3">
+                        <h4 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-graduate text-sky-400"></i> تكليفات الطلاب المحفوظة (الاسم والنتائج)</h4>
+                        <button type="button" onclick="loadAssignments(true)" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-2"><i class="fa-solid fa-rotate"></i> تحديث</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs text-slate-300">
+                            <thead class="bg-slate-800/80 text-slate-400 font-bold">
+                                <tr>
+                                    <th class="p-3 rounded-r-lg">اسم الطالب</th>
+                                    <th class="p-3">الدرس</th>
+                                    <th class="p-3">نتيجة الاختبار</th>
+                                    <th class="p-3">النقاط</th>
+                                    <th class="p-3">التسجيل الصوتي</th>
+                                    <th class="p-3">وقت الحفظ</th>
+                                    <th class="p-3 rounded-l-lg">حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-student-table-body" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+                    </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-800 text-slate-400 text-xs py-6 px-4 mt-12">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right">
+            <div>
+                <p class="font-bold text-slate-200">وحدة التحدث الرقمية التفاعلية - مهارات اللغة العربية (B1)</p>
+                <p class="text-slate-500 mt-0.5">تصميم وإعداد موجه لتعليم الناطقين بغير العربية | موضوع السفر والرحلات</p>
+            </div>
+            <div class="flex items-center gap-4 text-slate-400">
+                <span class="hover:text-brand-400 cursor-pointer"><i class="fa-solid fa-shield-halved"></i> معايير CEFR B1</span>
+                <span class="hover:text-brand-400 cursor-pointer"><i class="fa-solid fa-code"></i> HTML5 Single File</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GLOBAL LOADER (مؤشر التحميل) -->
+    <div id="global-loader" role="status" aria-live="polite" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-4 p-4 hidden">
+        <span class="spinner spinner-lg"></span>
+        <p id="global-loader-text" class="text-sm font-bold text-white text-center">جاري التحميل...</p>
+    </div>
+
+    <!-- TOASTS (رسائل التنبيه) -->
+    <div id="toast-container" class="fixed bottom-4 inset-x-0 z-[60] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
+
+    <!-- ONBOARDING MODAL -->
+    <div id="onboarding-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="glass-card max-w-2xl w-full rounded-2xl p-6 relative border border-slate-700 animate-fade-in">
+            <button onclick="toggleOnboardingModal(false)" class="absolute top-4 left-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400 text-2xl">
+                    <i class="fa-solid fa-compass"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white">دليل الوحدة الرقمية والأهداف التعليمية</h3>
+                    <p class="text-xs text-slate-400">المستوى المتوسط (B1) - الناطقون بغير العربية</p>
+                </div>
+            </div>
+
+            <div class="space-y-4 text-xs text-slate-300 leading-relaxed mb-6">
+                <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-brand-400 mb-1"><i class="fa-solid fa-bullseye"></i> الأهداف التعليمية للوحدة:</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>الانتقال من الحفظ السلبي للمفردات إلى الإنتاج الشفهي النشط.</li>
+                        <li>التدرب على المحادثات اليومية الحقيقية في المطار، الفندق، والسوق.</li>
+                        <li>استخدام أفعال الماضي وأدوات الربط لسرد حدث شخصي مدته 60 ثانية.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-amber-400 mb-1"><i class="fa-solid fa-gears"></i> كيفية استخدام الأدوات التفاعلية:</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>زر الاستماع <i class="fa-solid fa-volume-high"></i>:</strong> يسمح لك بسماع النطق العربي الصحيح المباشر.</li>
+                        <li><strong>مسجل الصوت <i class="fa-solid fa-microphone"></i>:</strong> يمكنك تسجيل صوتك ومراجعته بنفسك أو إرساله للمعلم.</li>
+                        <li><strong>الاختبارات السريعة:</strong> تقيس استيعابك وتمنحك نقاطاً تزيد من حصيلتك.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="toggleOnboardingModal(false)" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                ابدأ التعلم الآن
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ==================== STATE MANAGEMENT ====================
+        const appState = {
+            score: 0,
+            recordings: {
+                l1: null,
+                l2: null,
+                l3: null,
+                l4: null
+            },
+            quizScores: {
+                l1: null,
+                l2: null,
+                l3: null,
+                l4: null
+            },
+            assessmentScores: [0, 0, 0, 0, 0],
+            quizAnswers: { l1: {}, l2: {}, l3: {}, l4: {} },
+            quizProgress: { l1: { answered: 0, correct: 0 }, l2: { answered: 0, correct: 0 }, l3: { answered: 0, correct: 0 }, l4: { answered: 0, correct: 0 } }
+        };
+
+        // Lesson Vocabularies
+        const vocabData = {
+            l1: [
+                { ar: "تذكرة الطيران", en: "Flight Ticket", icon: "fa-ticket" },
+                { ar: "جواز السفر", en: "Passport", icon: "fa-passport" },
+                { ar: "بطاقة الصعود", en: "Boarding Pass", icon: "fa-id-card" },
+                { ar: "أمتعة / حقائب", en: "Luggage / Baggage", icon: "fa-suitcase-rolling" },
+                { ar: "بوابة المغادرة", en: "Departure Gate", icon: "fa-door-open" },
+                { ar: "مقعد بجوار النافذة", en: "Window Seat", icon: "fa-chair" },
+                { ar: "موظف الجوازات", en: "Immigration Officer", icon: "fa-user-shield" },
+                { ar: "تفتيش الأمتعة", en: "Baggage Inspection", icon: "fa-box-open" }
+            ],
+            l2: [
+                { ar: "حجز مسبق", en: "Reservation", icon: "fa-calendar-check" },
+                { ar: "غرفة مزدوجة", en: "Double Room", icon: "fa-bed" },
+                { ar: "مطلة على البحر", en: "Sea View", icon: "fa-water" },
+                { ar: "مفتاح الغرفة", en: "Room Key / Card", icon: "fa-key" },
+                { ar: "خدمة الغرف", en: "Room Service", icon: "fa-bell-concierge" },
+                { ar: "مكيف الهواء", en: "Air Conditioner", icon: "fa-fan" },
+                { ar: "وجبة الإفطار", en: "Breakfast", icon: "fa-utensils" },
+                { ar: "تسجيل الخروج", en: "Check-out", icon: "fa-right-from-bracket" }
+            ],
+            l3: [
+                { ar: "كم ثمن هذا؟", en: "How much is this?", icon: "fa-circle-question" },
+                { ar: "غالي جداً", en: "Very expensive", icon: "fa-arrow-up-right-dots" },
+                { ar: "تخفيض / خصم", en: "Discount / Reduction", icon: "fa-percent" },
+                { ar: "صناعة يدوية", en: "Handmade", icon: "fa-hands" },
+                { ar: "سوق تقليدي", en: "Traditional Market", icon: "fa-store" },
+                { ar: "هدية تذكارية", en: "Souvenir", icon: "fa-gift" },
+                { ar: "الدفع نقداً", en: "Cash Payment", icon: "fa-money-bill-wave" },
+                { ar: "بطاقة الائتمان", en: "Credit Card", icon: "fa-credit-card" }
+            ]
+        };
+
+        // Quiz Data
+        const quizData = {
+            l1: [
+                { q: "ماذا تطلب من الموظف إذا كنت تحب النظر للخارج أثناء الطيران؟", options: ["مقعداً في الممر", "مقعداً بجوار النافذة", "حقيبة إضافية"], correct: 1 },
+                { q: "الوثيقة الأساسية للسفر بين الدول هي:", options: ["بطاقة الصراف", "جواز السفر", "رخصة القيادة"], correct: 1 },
+                { q: "ما معنى العبارة: 'تفضل بطاقة الصعود'؟", options: ["Here is your boarding pass", "Here is your key", "Where is the exit?"], correct: 0 }
+            ],
+            l2: [
+                { q: "عندما تطلب غرفة لشخصين، تطلب:", options: ["غرفة فردية", "غرفة مزدوجة", "جناح رئيسي"], correct: 1 },
+                { q: "إذا كان المكيف لا يعمل، ماذا تقول لموظف الاستقبال؟", options: ["المكيف ممتاز", "المكيف لا يعمل بشكل جيد", "أريد وجبة إفطار"], correct: 1 },
+                { q: "ما المقصود بـ 'شامل الإفطار'؟", options: ["Breakfast included", "Lunch included", "Dinner only"], correct: 0 }
+            ],
+            l3: [
+                { q: "ما العبارة المناسبة لبدء المساومة على السعر؟", options: ["شكراً لك", "هل يمكنك تخفيض السعر قليلاً؟", "أين المطار؟"], correct: 1 },
+                { q: "كلمة 'هدية تذكارية' تعني بالإنجليزية:", options: ["Ticket", "Souvenir", "Receipt"], correct: 1 },
+                { q: "عندما تشتري شيئاً وتريد الدفع بالورق النقدي:"},
+            ],
+            l4: [
+                { q: "أي من الكلمات التالية تُستخدم لتسلسل الأحداث الزمني؟", options: ["أولاً، ثم بعد ذلك", "لذلك فقط", "بدون سبب"], correct: 0 },
+                { q: "للتعبير عن الانطباع النهائي عن الرحلة نقول:", options: ["سافرت أمس", "كانت رحلة ممتعة ولن أنساها", "أين التذكرة؟"], correct: 1 }
+            ]
+        };
+        // Fix quiz L3 third question options
+        quizData.l3[2] = { q: "عندما تشتري شيئاً وتريد الدفع بالورق النقدي تقول:", options: ["سأدفع نقداً", "سأدفع بالبطاقة", "لا أريد الشراء"], correct: 0 };
+
+        // Assessment Prompts
+        const assessmentPrompts = [
+            { id: 1, text: "اطلب حجز تذكرة طيران إلى القاهرة موضحاً موعد السفر والمقعد المفصل.", hint: "المطار وحجز التذاكر" },
+            { id: 2, text: "تحدث مع موظف الاستقبال بالفندق لتأكيد حجزك وطلب غرفة مطلة على البحر.", hint: "الفندق والخدمات" },
+            { id: 3, text: "قم بمساومة بائع السجاد في السوق لتخفيض السعر بنسبة 20%.", hint: "السوق والتفاوض" },
+            { id: 4, text: "اشرح لموظف الاستقبال مشكلة عدم وجود ماء ساخن في حمام الغرفة.", hint: "الشكاوى الفندقية" },
+            { id: 5, text: "تحدث في 45 ثانية عن أفضل مدينة زرتها في حياتك والسبب.", hint: "السرد الشخصي" }
+        ];
+
+        // Web Audio & MediaRecorder state variables
+        const mediaRecorders = {};
+        const audioChunks = {};
+        const timerIntervals = {};
+
+        // ==================== FIREBASE CONFIG (v8) ====================
+        // ضع بيانات مشروعك هنا من: Firebase Console > Project settings > Your apps
+
+ const firebaseConfig = {
+
+    apiKey: "AIzaSyDlEkXT--o9OyH8U3DF-CGosbtf7me20BE",
+
+    authDomain: "questions2026-917ac.firebaseapp.com",
+
+    databaseURL: "https://questions2026-917ac-default-rtdb.europe-west1.firebasedatabase.app",
+
+    projectId: "questions2026-917ac",
+
+    storageBucket: "questions2026-917ac.firebasestorage.app",
+
+    messagingSenderId: "493395357197",
+
+    appId: "1:493395357197:web:e8832a7edf8c7b85092f44",
+
+    measurementId: "G-49FE2L2QQY"
+
+  };
+
+
+        const DB_ROOT = 'travelB1/';        // جذر البيانات في Realtime Database
+        const LS_PREFIX = 'travelB1:';      // بادئة مفاتيح LocalStorage
+        const DEFAULT_TEACHER_PASSWORD = '123';
+        const SPINNER_HTML = '<span class="spinner" aria-hidden="true"></span>';
+        const LESSON_NAMES = { l1: 'الدرس 1: في المطار', l2: 'الدرس 2: في الفندق', l3: 'الدرس 3: في السوق', l4: 'الدرس 4: احكِ رحلتك' };
+
+        // ==================== DATA LAYER: Firebase + LocalStorage Fallback ====================
+        // أي فشل (إعدادات ناقصة / انقطاع / مهلة) يحوّل التطبيق تلقائياً إلى التخزين المحلي دون توقف.
+        const DB = (function () {
+            let db = null, cloud = false;
+            const mem = {};                  // احتياط إضافي إن كان LocalStorage غير متاح
+            const TIMEOUT_MS = 7000;
+
+            const configured = () => !/YOUR_/.test(String(firebaseConfig.apiKey) + String(firebaseConfig.databaseURL));
+            const setStatus = s => { if (typeof updateDbBadge === 'function') updateDbBadge(s); };
+            const withTimeout = p => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), TIMEOUT_MS))]);
+            const clean = v => JSON.parse(JSON.stringify(v === undefined ? null : v));
+
+            function getLocal(path) {
+                try { const r = localStorage.getItem(LS_PREFIX + path); if (r !== null) return JSON.parse(r); } catch (e) { /* تجاهل */ }
+                return Object.prototype.hasOwnProperty.call(mem, path) ? mem[path] : null;
+            }
+            function setLocal(path, val) {
+                mem[path] = val;
+                try { localStorage.setItem(LS_PREFIX + path, JSON.stringify(val)); return true; } catch (e) { return false; }
+            }
+            function init() {
+                try {
+                    if (typeof firebase === 'undefined' || !configured()) { setStatus('local'); return; }
+                    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                    db = firebase.database(); cloud = true; setStatus('cloud');
+                } catch (e) { console.warn('Firebase init failed:', e); cloud = false; setStatus('offline'); }
+            }
+            async function get(path) {
+                if (cloud) {
+                    try {
+                        const v = (await withTimeout(db.ref(DB_ROOT + path).once('value'))).val();
+                        setStatus('cloud');
+                        if (v !== null) { setLocal(path, v); return v; }
+                    } catch (e) { setStatus('offline'); }
+                }
+                return getLocal(path);
+            }
+            async function set(path, val) {
+                const v = clean(val), okLocal = setLocal(path, v);
+                if (cloud) {
+                    try { await withTimeout(db.ref(DB_ROOT + path).set(v)); setStatus('cloud'); return { ok: true, cloud: true }; }
+                    catch (e) { setStatus('offline'); }
+                }
+                return { ok: okLocal, cloud: false };
+            }
+            const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+            // إنشاء أو تحديث سجل بمعرّف محدد (يحدّث النسخة المحلية والسحابية معاً)
+            async function put(path, id, val) {
+                const v = clean(val);
+                const map = getLocal(path) || {};
+                const prev = map[id];
+                map[id] = v;
+                const okLocal = setLocal(path, map);
+                if (cloud) {
+                    try { await withTimeout(db.ref(DB_ROOT + path + '/' + id).set(v)); setStatus('cloud'); return { ok: true, cloud: true, id }; }
+                    catch (e) { setStatus('offline'); }
+                }
+                if (!okLocal) { if (prev === undefined) delete map[id]; else map[id] = prev; mem[path] = map; }
+                return { ok: okLocal, cloud: false, id };
+            }
+            const push = (path, val) => put(path, newId(), val);
+            async function list(path) {
+                const map = await get(path);
+                return Object.entries(map && typeof map === 'object' ? map : {})
+                    .filter(([, v]) => v && typeof v === 'object')
+                    .map(([id, v]) => Object.assign({}, v, { id }))
+                    .sort((a, b) => (b.savedAtTs || 0) - (a.savedAtTs || 0));
+            }
+            async function remove(path, id) {
+                const map = getLocal(path) || {};
+                delete map[id]; setLocal(path, map);
+                if (cloud) {
+                    try { await withTimeout(db.ref(DB_ROOT + path + '/' + id).remove()); setStatus('cloud'); }
+                    catch (e) { setStatus('offline'); return false; }
+                }
+                return true;
+            }
+            return { init, get, set, put, push, newId, list, remove, getLocal, setLocal, isCloud: () => cloud };
+        })();
+
+        // ==================== UI HELPERS (Loader / Toast / Badge) ====================
+        let loaderCount = 0;
+        function showLoader(msg) {
+            loaderCount++;
+            const el = document.getElementById('global-loader'), t = document.getElementById('global-loader-text');
+            if (t) t.textContent = msg || 'جاري التحميل...';
+            if (el) el.classList.remove('hidden');
+        }
+        function hideLoader() {
+            loaderCount = Math.max(0, loaderCount - 1);
+            const el = document.getElementById('global-loader');
+            if (loaderCount === 0 && el) el.classList.add('hidden');
+        }
+        function showToast(msg, type) {
+            const box = document.getElementById('toast-container');
+            if (!box) return;
+            const colors = { ok: 'bg-emerald-600', warn: 'bg-amber-600', error: 'bg-rose-600' };
+            const el = document.createElement('div');
+            el.className = `${colors[type] || colors.ok} text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg max-w-sm text-center`;
+            el.textContent = msg;
+            box.appendChild(el);
+            setTimeout(() => el.remove(), 4500);
+        }
+        function escapeHtml(v) {
+            return String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        function isSafeAudioSrc(src) { return typeof src === 'string' && /^(data:audio\/|blob:)/.test(src); }
+        function setInlineMsg(id, text, ok) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = text;
+            el.className = `text-xs font-bold ${ok ? 'text-emerald-400' : 'text-rose-400'}`;
+        }
+        function initDbStatusBadge() {
+            const score = document.getElementById('global-score');
+            const holder = score && score.closest('div');
+            if (!holder || document.getElementById('db-status-badge')) return;
+            holder.insertAdjacentHTML('beforebegin', '<span id="db-status-badge" class="text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-900/60 border border-slate-700/80"></span>');
+            updateDbBadge(DB.isCloud() ? 'cloud' : 'local');
+        }
+        function updateDbBadge(status) {
+            const b = document.getElementById('db-status-badge');
+            if (!b) return;
+            const map = {
+                cloud: ['fa-cloud', 'text-emerald-300', 'متصل بالسحابة'],
+                offline: ['fa-cloud-bolt', 'text-amber-300', 'وضع محلي (لا اتصال)'],
+                local: ['fa-hard-drive', 'text-slate-300', 'تخزين محلي']
+            };
+            const m = map[status] || map.local;
+            b.className = `text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-900/60 border border-slate-700/80 ${m[1]}`;
+            b.innerHTML = `<i class="fa-solid ${m[0]}"></i> ${m[2]}`;
+        }
+
+        // ==================== BOOTSTRAP: تحميل الإعدادات واسترجاع حالة الطالب ====================
+        let teacherSettings = { passHash: null, whatsapp: '' };
+        let teacherAuthed = false;
+        let assignmentsCache = [];
+        let assignmentIds = {};   // معرّف سجل التكليف لكل درس (لتحديثه تلقائياً)
+        let failedLogins = 0, loginLockUntil = 0;
+
+        async function loadSettings() {
+            const st = await DB.get('settings');
+            if (st && typeof st === 'object') {
+                teacherSettings = {
+                    passHash: typeof st.passHash === 'string' ? st.passHash : null,
+                    whatsapp: String(st.whatsapp || '').replace(/\D/g, '')
+                };
+            }
+        }
+        async function bootstrapData() {
+            showLoader('جاري الاتصال بقاعدة البيانات...');
+            try {
+                DB.init();
+                await loadSettings();
+                restoreStudentState();
+            } catch (e) {
+                console.error(e);
+                showToast('تعذر تحميل البيانات، يعمل التطبيق بالتخزين المحلي.', 'warn');
+            } finally { hideLoader(); }
+        }
+        function restoreStudentState() {
+            const name = DB.getLocal('student/name');
+            if (name) setStudentNameInputs(String(name));
+            const recs = DB.getLocal('student/recordings') || {};
+            Object.keys(appState.recordings).forEach(k => {
+                const r = recs[k];
+                if (!r || !isSafeAudioSrc(r.dataUrl)) return;
+                appState.recordings[k] = { url: r.dataUrl, dataUrl: r.dataUrl, date: r.date || '' };
+                const pv = document.getElementById(`audio-preview-${k}`), ct = document.getElementById(`audio-playback-container-${k}`);
+                if (pv && ct) { pv.src = r.dataUrl; ct.classList.remove('hidden'); }
+            });
+            assignmentIds = DB.getLocal('student/assignmentIds') || {};
+            restoreQuizState();
+            const asm = DB.getLocal('student/assessment');
+            if (Array.isArray(asm)) asm.slice(0, 5).forEach((v, i) => { const n = Number(v); if (n >= 1 && n <= 5) setAssessmentRating(i, n); });
+            updateDashboard();
+        }
+
+        // حفظ التسجيلات الصوتية (Base64) محلياً لاسترجاعها بعد إعادة التحميل
+        function persistRecording(key, rec, blob) {
+            rec.dataPromise = new Promise(resolve => {
+                try {
+                    const fr = new FileReader();
+                    fr.onload = () => { rec.dataUrl = String(fr.result); if (appState.recordings[key] === rec) { persistRecordings(); scheduleAssignmentSync(key); } resolve(); };
+                    fr.onerror = () => resolve();
+                    fr.readAsDataURL(blob);
+                } catch (e) { resolve(); }
+            });
+        }
+        function persistRecordings() {
+            const out = {};
+            Object.entries(appState.recordings).forEach(([k, r]) => { if (r && r.dataUrl) out[k] = { dataUrl: r.dataUrl, date: r.date }; });
+            if (!DB.setLocal('student/recordings', out)) showToast('مساحة التخزين المحلي ممتلئة؛ لن تُسترجع التسجيلات بعد إغلاق الصفحة.', 'warn');
+        }
+
+        // ==================== QUIZ TRACKING ====================
+        function trackQuizResult(lessonKey, isCorrect, questionIdx, selectedIdx) {
+            const p = appState.quizProgress[lessonKey], total = (quizData[lessonKey] || []).length;
+            if (!p) return;
+            p.answered++;
+            if (isCorrect) p.correct++;
+            appState.quizAnswers[lessonKey][questionIdx] = selectedIdx;
+            if (total > 0 && p.answered >= total) appState.quizScores[lessonKey] = Math.round((p.correct / total) * 100);
+            persistQuizState();
+            scheduleAssignmentSync(lessonKey);   // تحديث سجل المعلم تلقائياً بعد كل إجابة
+        }
+        function persistQuizState() {
+            DB.setLocal('student/quiz', {
+                score: appState.score, progress: appState.quizProgress,
+                scores: appState.quizScores, answers: appState.quizAnswers
+            });
+        }
+        // استرجاع نتائج الاختبارات وحالة الأزرار بعد إعادة تحميل الصفحة
+        function restoreQuizState() {
+            const st = DB.getLocal('student/quiz');
+            if (!st || typeof st !== 'object') return;
+            if (Number.isFinite(st.score)) appState.score = st.score;
+            ['l1', 'l2', 'l3', 'l4'].forEach(k => {
+                const pr = st.progress && st.progress[k];
+                if (pr && Number.isFinite(pr.answered) && Number.isFinite(pr.correct)) appState.quizProgress[k] = { answered: pr.answered, correct: pr.correct };
+                if (st.scores && Number.isFinite(st.scores[k])) appState.quizScores[k] = st.scores[k];
+                const answers = (st.answers && st.answers[k]) || {};
+                Object.entries(answers).forEach(([qi, sel]) => {
+                    const q = (quizData[k] || [])[qi], btns = document.querySelectorAll(`.option-btn-${k}-${qi}`);
+                    if (!q || !btns.length || !Number.isInteger(sel) || !btns[sel]) return;
+                    appState.quizAnswers[k][qi] = sel;
+                    btns.forEach(b => { b.disabled = true; b.classList.add('opacity-60'); });
+                    const paint = (b, cls) => { b.classList.remove('bg-slate-800', 'opacity-60'); b.classList.add(...cls); };
+                    if (sel === q.correct) paint(btns[sel], ['bg-emerald-600', 'text-white', 'border-emerald-400']);
+                    else { paint(btns[sel], ['bg-rose-600', 'text-white', 'border-rose-400']); paint(btns[q.correct], ['bg-emerald-600', 'text-white']); }
+                });
+            });
+            const sc = document.getElementById('global-score');
+            if (sc) sc.textContent = appState.score;
+        }
+        function updateDashboardExtras() {
+            const scores = Object.values(appState.quizScores).filter(v => v !== null);
+            const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+            const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+            const bar = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = `${pct}%`; };
+            set('dash-quiz-avg', `${avg}%`); bar('dash-quiz-progress', avg);
+            set('dash-lessons-completed', `${scores.length} / 4`); bar('dash-lessons-progress', (scores.length / 4) * 100);
+            renderAssignmentsTable();
+        }
+
+        // ==================== STUDENT NAME + SAVE (نظام التكليفات) ====================
+        function getStudentName() {
+            const inp = document.querySelector('[data-student-input]');
+            return inp ? inp.value.trim() : '';
+        }
+        function setStudentNameInputs(name) { document.querySelectorAll('[data-student-input]').forEach(i => { i.value = name; }); }
+        function syncStudentName(name) { setStudentNameInputs(name); DB.setLocal('student/name', name); }
+
+        // إدراج حقل "اسم الطالب" + زر "حفظ" في أعلى كل درس
+        function renderStudentBoxes() {
+            ['l1', 'l2', 'l3', 'l4'].forEach(k => {
+                const section = document.getElementById(`tab-lesson-${k.slice(1)}`);
+                if (!section || section.querySelector('[data-student-box]')) return;
+                const banner = section.firstElementChild;
+                if (!banner) return;
+                banner.insertAdjacentHTML('afterend', `
+                    <div data-student-box="${k}" class="glass-card rounded-2xl p-5 border border-sky-500/30">
+                        <form onsubmit="saveStudentAssignment(event, '${k}')" class="space-y-2" autocomplete="off">
+                            <label for="student-name-${k}" class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-pen text-sky-400"></i> اسم الطالب</label>
+                            <div class="flex gap-2">
+                                <input id="student-name-${k}" data-student-input type="text" maxlength="60" required placeholder="اكتب اسمك هنا ثم اضغط حفظ" oninput="syncStudentName(this.value)" class="flex-grow ${'w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-slate-500'}">
+                                <button type="submit" class="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-5 rounded-lg transition flex items-center gap-2 whitespace-nowrap">حفظ</button>
+                            </div>
+                            <p id="student-msg-${k}" role="status" class="hidden"></p>
+                        </form>
+                    </div>`);
+            });
+        }
+
+        // بناء سجل التكليف من الحالة الحالية (النتائج + النقاط + التسجيل الصوتي)
+        async function buildAssignmentEntry(key, name) {
+            const rec = appState.recordings[key];
+            if (rec && rec.dataPromise) await rec.dataPromise;
+            const p = appState.quizProgress[key] || { answered: 0, correct: 0 };
+            const total = (quizData[key] || []).length;
+            return {
+                student: name, lessonKey: key, lessonName: LESSON_NAMES[key] || key,
+                quizCorrect: p.correct, quizAnswered: p.answered, quizTotal: total,
+                quizPct: total ? Math.round((p.correct / total) * 100) : 0,
+                points: p.correct * 10, score: appState.score,
+                hasRecording: !!rec,
+                audio: rec && isSafeAudioSrc(rec.dataUrl) ? rec.dataUrl : null,
+                savedAtTs: Date.now(), savedAtLabel: new Date().toLocaleString('ar-SA')
+            };
+        }
+        // إنشاء سجل الدرس أو تحديثه (نفس المعرّف) حتى لا تتكرر الصفوف
+        async function upsertAssignment(key, name) {
+            if (!assignmentIds[key]) { assignmentIds[key] = DB.newId(); DB.setLocal('student/assignmentIds', assignmentIds); }
+            const entry = await buildAssignmentEntry(key, name);
+            let res = await DB.put('assignments', assignmentIds[key], entry);
+            if (!res.ok && entry.audio) {      // الحجم كبير جداً: احفظ النتائج بدون الصوت
+                entry.audio = null;
+                res = await DB.put('assignments', assignmentIds[key], entry);
+                if (res.ok) showToast('حُفظت النتائج بدون الملف الصوتي (حجمه كبير).', 'warn');
+            }
+            return res;
+        }
+        // تحديث تلقائي (مؤجّل) لسجل الدرس بعد أي إجابة أو تسجيل، بشرط أن يكون الطالب قد ضغط "حفظ" مسبقاً
+        const syncTimers = {};
+        function scheduleAssignmentSync(key) {
+            if (!assignmentIds[key]) return;
+            clearTimeout(syncTimers[key]);
+            syncTimers[key] = setTimeout(async () => {
+                try {
+                    const name = getStudentName() || DB.getLocal('student/name');
+                    if (name) await upsertAssignment(key, String(name));
+                } catch (e) { console.warn('Auto-sync failed:', e); }
+            }, 1200);
+        }
+
+        async function saveStudentAssignment(event, key) {
+            event.preventDefault();
+            const form = event.currentTarget || event.target;
+            const btn = form.querySelector('button[type="submit"]'), input = form.querySelector('input');
+            const name = (input.value || '').trim().replace(/\s+/g, ' ');
+            if (name.length < 2) { setInlineMsg(`student-msg-${key}`, 'يرجى كتابة اسم الطالب (حرفان على الأقل).', false); input.focus(); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = `${SPINNER_HTML} جاري الحفظ`;
+            try {
+                syncStudentName(name);
+                const res = await upsertAssignment(key, name);
+                const answered = (appState.quizProgress[key] || {}).answered || 0;
+                if (!res.ok) setInlineMsg(`student-msg-${key}`, 'تعذر الحفظ. حاول مرة أخرى.', false);
+                else {
+                    const where = res.cloud ? 'في سجل المعلم' : 'محلياً (لا يوجد اتصال بالسحابة)';
+                    setInlineMsg(`student-msg-${key}`, answered ? `✓ تم حفظ النتائج ${where}.` : `✓ تم حفظ اسمك ${where}؛ ستُحدَّث نتائجك تلقائياً عند حل الاختبار أو التسجيل.`, true);
+                }
+            } catch (e) {
+                console.error(e);
+                setInlineMsg(`student-msg-${key}`, 'حدث خطأ غير متوقع أثناء الحفظ.', false);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'حفظ';
+            }
+        }
+
+        async function loadAssignments(withSpinner) {
+            if (withSpinner) showLoader('جاري تحميل سجل التكليفات...');
+            try { assignmentsCache = await DB.list('assignments'); }
+            catch (e) { console.error(e); assignmentsCache = []; showToast('تعذر تحميل السجل.', 'error'); }
+            finally { if (withSpinner) hideLoader(); }
+            renderAssignmentsTable();
+        }
+        function formatResultCell(a) {
+            const total = Number(a.quizTotal) || 0, answered = Number(a.quizAnswered) || 0, correct = Number(a.quizCorrect) || 0;
+            if (!answered) return '<span class="text-slate-500">لم يُحل بعد</span>';
+            const partial = answered < total ? ` <span class="text-amber-400">· أُجيب ${answered}/${total}</span>` : '';
+            return `${correct} / ${total} (${Number(a.quizPct) || 0}%)${partial}`;
+        }
+        function formatPointsCell(a) {
+            const pts = a.points !== undefined ? Number(a.points) || 0 : (Number(a.quizCorrect) || 0) * 10;
+            return `${pts} <span class="text-slate-500">(الإجمالي ${Number(a.score) || 0})</span>`;
+        }
+        function renderAssignmentsTable() {
+            const body = document.getElementById('dash-student-table-body');
+            if (!body) return;
+            if (!assignmentsCache.length) {
+                body.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">لا توجد تكليفات محفوظة بعد</td></tr>';
+                return;
+            }
+            body.innerHTML = assignmentsCache.map(a => {
+                const audio = isSafeAudioSrc(a.audio) ? `<audio src="${a.audio}" controls class="h-8 w-48"></audio>`
+                    : (a.hasRecording ? '<span class="text-amber-400">مسجّل (بدون ملف)</span>' : '<span class="text-slate-600">-</span>');
+                return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="p-3 font-semibold text-slate-200">${escapeHtml(a.student)}</td>
+                        <td class="p-3">${escapeHtml(LESSON_NAMES[a.lessonKey] || a.lessonName)}</td>
+                        <td class="p-3">${formatResultCell(a)}</td>
+                        <td class="p-3">${formatPointsCell(a)}</td>
+                        <td class="p-3">${audio}</td>
+                        <td class="p-3 text-slate-400">${escapeHtml(a.savedAtLabel)}</td>
+                        <td class="p-3"><button type="button" data-id="${escapeHtml(a.id)}" onclick="deleteAssignment(this.dataset.id)" class="text-rose-400 hover:text-rose-300" aria-label="حذف"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>`;
+            }).join('');
+        }
+        async function deleteAssignment(id) {
+            if (!teacherAuthed || !id || !confirm('هل تريد حذف هذا التكليف؟')) return;
+            showLoader('جاري الحذف...');
+            try {
+                const ok = await DB.remove('assignments', id);
+                if (!ok) showToast('تعذر الحذف من السحابة.', 'error');
+                assignmentsCache = assignmentsCache.filter(a => a.id !== id);
+                renderAssignmentsTable();
+            } finally { hideLoader(); }
+        }
+
+        // ==================== TEACHER DASHBOARD: كلمة المرور + واتساب ====================
+        async function hashPassword(pw, kind) {
+            const text = 'travelB1::' + pw;
+            if (kind !== 'djb2') {
+                try {
+                    if (window.crypto && crypto.subtle) {
+                        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+                        return 'sha256:' + Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    }
+                } catch (e) { /* ننتقل للبديل */ }
+                if (kind === 'sha256') return null;
+            }
+            let h = 5381;
+            for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+            return 'djb2:' + (h >>> 0).toString(16);
+        }
+        async function verifyPassword(pw) {
+            const stored = teacherSettings.passHash;
+            if (!stored) return pw === DEFAULT_TEACHER_PASSWORD;
+            return (await hashPassword(pw, stored.split(':')[0])) === stored;
+        }
+        function showLoginError(msg) {
+            const el = document.getElementById('teacher-login-error');
+            if (!el) return;
+            el.textContent = msg; el.classList.remove('hidden');
+        }
+        async function handleTeacherLogin(event) {
+            event.preventDefault();
+            const input = document.getElementById('teacher-password-input');
+            const now = Date.now();
+            if (now < loginLockUntil) { showLoginError(`محاولات كثيرة، أعد المحاولة بعد ${Math.ceil((loginLockUntil - now) / 1000)} ثانية.`); return; }
+            showLoader('جاري التحقق...');
+            try {
+                await loadSettings();
+                if (await verifyPassword(input.value)) {
+                    failedLogins = 0; teacherAuthed = true; input.value = '';
+                    showDashboardContent();
+                } else {
+                    failedLogins++;
+                    if (failedLogins >= 5) { loginLockUntil = Date.now() + 30000; failedLogins = 0; }
+                    showLoginError('كلمة المرور غير صحيحة.');
+                }
+            } catch (e) { console.error(e); showLoginError('حدث خطأ أثناء التحقق، حاول مجدداً.'); }
+            finally { hideLoader(); }
+        }
+        function showDashboardContent() {
+            const login = document.getElementById('dashboard-login'), content = document.getElementById('dashboard-content');
+            if (login) login.classList.add('hidden');
+            if (content) content.classList.remove('hidden');
+            const wa = document.getElementById('wa-number-input');
+            if (wa) wa.value = teacherSettings.whatsapp;
+            refreshWaLabel();
+            loadAssignments(true);
+        }
+        function refreshWaLabel() {
+            const el = document.getElementById('wa-current');
+            if (el) el.textContent = teacherSettings.whatsapp ? `الرقم المحفوظ حالياً: +${teacherSettings.whatsapp}` : 'لم يتم حفظ رقم بعد.';
+        }
+        function onDashboardOpened() {
+            if (teacherAuthed) showDashboardContent();
+            else { lockDashboard(); const i = document.getElementById('teacher-password-input'); if (i) i.focus(); }
+        }
+        function lockDashboard() {
+            teacherAuthed = false;
+            const login = document.getElementById('dashboard-login'), content = document.getElementById('dashboard-content');
+            if (login) login.classList.remove('hidden');
+            if (content) content.classList.add('hidden');
+            ['teacher-password-input', 'cp-current', 'cp-new', 'cp-confirm'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            const err = document.getElementById('teacher-login-error');
+            if (err) err.classList.add('hidden');
+        }
+        async function handleChangePassword(event) {
+            event.preventDefault();
+            if (!teacherAuthed) return;
+            const cur = document.getElementById('cp-current').value, nw = document.getElementById('cp-new').value, cf = document.getElementById('cp-confirm').value;
+            if (!(await verifyPassword(cur))) return setInlineMsg('change-password-msg', 'كلمة المرور الحالية غير صحيحة.', false);
+            if (nw.length < 3) return setInlineMsg('change-password-msg', 'كلمة المرور الجديدة قصيرة (3 أحرف على الأقل).', false);
+            if (nw !== cf) return setInlineMsg('change-password-msg', 'تأكيد كلمة المرور غير مطابق.', false);
+            if (nw === cur) return setInlineMsg('change-password-msg', 'الجديدة مطابقة للحالية.', false);
+            showLoader('جاري تحديث كلمة المرور...');
+            const previous = teacherSettings.passHash;
+            try {
+                teacherSettings.passHash = await hashPassword(nw);
+                const res = await DB.set('settings', teacherSettings);
+                if (!res.ok) { teacherSettings.passHash = previous; return setInlineMsg('change-password-msg', 'تعذر الحفظ، حاول مجدداً.', false); }
+                event.target.reset();
+                setInlineMsg('change-password-msg', res.cloud ? '✓ تم تحديث كلمة المرور.' : '✓ تم التحديث محلياً (لا يوجد اتصال بالسحابة).', true);
+            } catch (e) { console.error(e); teacherSettings.passHash = previous; setInlineMsg('change-password-msg', 'حدث خطأ غير متوقع.', false); }
+            finally { hideLoader(); }
+        }
+        async function handleSaveWhatsapp(event) {
+            event.preventDefault();
+            if (!teacherAuthed) return;
+            const digits = document.getElementById('wa-number-input').value.replace(/\D/g, '').replace(/^00/, '');
+            if (digits.length < 8 || digits.length > 15) return setInlineMsg('whatsapp-msg', 'رقم غير صالح: أدخل من 8 إلى 15 رقماً بالصيغة الدولية.', false);
+            showLoader('جاري حفظ الرقم...');
+            const previous = teacherSettings.whatsapp;
+            try {
+                teacherSettings.whatsapp = digits;
+                const res = await DB.set('settings', teacherSettings);
+                if (!res.ok) { teacherSettings.whatsapp = previous; return setInlineMsg('whatsapp-msg', 'تعذر الحفظ، حاول مجدداً.', false); }
+                refreshWaLabel();
+                setInlineMsg('whatsapp-msg', res.cloud ? '✓ تم حفظ رقم واتساب.' : '✓ تم الحفظ محلياً (لا يوجد اتصال بالسحابة).', true);
+            } catch (e) { console.error(e); teacherSettings.whatsapp = previous; setInlineMsg('whatsapp-msg', 'حدث خطأ غير متوقع.', false); }
+            finally { hideLoader(); }
+        }
+
+        // ==================== INITIALIZATION ====================
+        window.onload = async function () {
+            renderVocabCards();
+            renderQuizzes();
+            renderAssessmentPrompts();
+            renderLikertRatings();
+            renderStudentBoxes();
+            initDbStatusBadge();
+            updateDashboard();
+            await bootstrapData();
+        };
+
+        // Text To Speech Functionality
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop current speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ar-SA';
+                utterance.rate = 0.85; // Slightly slower for language learners
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("عذراً، متصفحك لا يدعم قراءة النصوص الصوتية تلقائياً.");
+            }
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
+                btn.classList.add('bg-slate-800/80', 'text-slate-300');
+            });
+
+            const selectedTab = document.getElementById(`tab-${tabId}`);
+            const selectedBtn = document.getElementById(`tab-btn-${tabId}`);
+            
+            if (selectedTab && selectedBtn) {
+                selectedTab.classList.remove('hidden');
+                selectedBtn.classList.remove('bg-slate-800/80', 'text-slate-300');
+                selectedBtn.classList.add('bg-brand-600', 'text-white', 'shadow-md');
+            }
+
+            // حماية لوحة المعلم: قفلها عند مغادرتها وطلب كلمة المرور عند فتحها
+            if (tabId === 'dashboard') onDashboardOpened();
+            else lockDashboard();
+        }
+
+        // Onboarding Modal Toggle
+        function toggleOnboardingModal(show) {
+            const modal = document.getElementById('onboarding-modal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        // ==================== RENDER FUNCTIONS ====================
+        function renderVocabCards() {
+            ['l1', 'l2', 'l3'].forEach(lessonKey => {
+                const container = document.getElementById(`vocab-cards-${lessonKey}`);
+                if (!container) return;
+
+                container.innerHTML = vocabData[lessonKey].map(item => `
+                    <div onclick="speakText('${item.ar}')" class="glass-card p-4 rounded-xl border border-slate-700/60 hover:border-brand-500/80 transition cursor-pointer group flex flex-col justify-between space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="w-10 h-10 rounded-lg bg-brand-500/10 text-brand-400 group-hover:bg-brand-500 group-hover:text-white transition flex items-center justify-center text-lg">
+                                <i class="fa-solid ${item.icon}"></i>
+                            </div>
+                            <span class="text-slate-400 group-hover:text-brand-400 transition">
+                                <i class="fa-solid fa-volume-high"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-bold text-white group-hover:text-brand-300 transition">${item.ar}</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">${item.en}</p>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function renderQuizzes() {
+            ['l1', 'l2', 'l3', 'l4'].forEach(lessonKey => {
+                const container = document.getElementById(`quiz-container-${lessonKey}`);
+                if (!container) return;
+
+                const questions = quizData[lessonKey];
+                container.innerHTML = questions.map((q, qIndex) => `
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <p class="text-sm font-bold text-slate-200 mb-3">${qIndex + 1}. ${q.q}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            ${q.options.map((opt, optIndex) => `
+                                <button onclick="checkAnswer('${lessonKey}', ${qIndex}, ${optIndex}, this)" class="option-btn-${lessonKey}-${qIndex} text-xs font-semibold p-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 transition text-right">
+                                    ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('') + `
+                    <div id="quiz-score-feedback-${lessonKey}" class="hidden p-3 rounded-xl bg-brand-500/20 text-brand-300 text-xs font-bold text-center"></div>
+                `;
+            });
+        }
+
+        function checkAnswer(lessonKey, questionIdx, selectedIdx, btnElement) {
+            const question = quizData[lessonKey][questionIdx];
+            const allOptionBtns = document.querySelectorAll(`.option-btn-${lessonKey}-${questionIdx}`);
+
+            allOptionBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-60');
+            });
+
+            if (selectedIdx === question.correct) {
+                btnElement.classList.remove('bg-slate-800', 'opacity-60');
+                btnElement.classList.add('bg-emerald-600', 'text-white', 'border-emerald-400');
+                appState.score += 10;
+                confetti({ particleCount: 30, spread: 60, origin: { y: 0.8 } });
+            } else {
+                btnElement.classList.remove('bg-slate-800', 'opacity-60');
+                btnElement.classList.add('bg-rose-600', 'text-white', 'border-rose-400');
+                allOptionBtns[question.correct].classList.remove('bg-slate-800', 'opacity-60');
+                allOptionBtns[question.correct].classList.add('bg-emerald-600', 'text-white');
+            }
+
+            document.getElementById('global-score').textContent = appState.score;
+            trackQuizResult(lessonKey, selectedIdx === question.correct, questionIdx, selectedIdx);
+            updateDashboard();
+        }
+
+        function renderAssessmentPrompts() {
+            const container = document.getElementById('assessment-prompts-container');
+            if (!container) return;
+
+            container.innerHTML = assessmentPrompts.map(p => `
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <span class="text-[10px] bg-sky-500/20 text-sky-300 px-2.5 py-0.5 rounded-full border border-sky-500/30 font-bold">المهمة ${p.id} - ${p.hint}</span>
+                            <p class="text-sm font-bold text-white mt-1.5">${p.text}</p>
+                        </div>
+                        <button onclick="speakText('${p.text}')" class="text-slate-400 hover:text-brand-400 p-1.5">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+
+                    <!-- Rubric Self Rating -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+                        <span class="text-slate-400">التقييم الذاتي (1 - 5):</span>
+                        <div class="flex gap-2">
+                            ${[1,2,3,4,5].map(star => `
+                                <button onclick="setAssessmentRating(${p.id - 1}, ${star})" class="star-p${p.id} text-slate-600 hover:text-amber-400 text-base transition">
+                                    <i class="fa-solid fa-star"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setAssessmentRating(promptIndex, rating) {
+            appState.assessmentScores[promptIndex] = rating;
+            DB.setLocal('student/assessment', appState.assessmentScores.slice());
+            const stars = document.querySelectorAll(`.star-p${promptIndex + 1}`);
+            stars.forEach((s, idx) => {
+                if (idx < rating) {
+                    s.classList.remove('text-slate-600');
+                    s.classList.add('text-amber-400');
+                } else {
+                    s.classList.remove('text-amber-400');
+                    s.classList.add('text-slate-600');
+                }
+            });
+            updateDashboard();
+        }
+
+        function renderLikertRatings() {
+            ['q1', 'q2', 'q3'].forEach(qKey => {
+                const container = document.getElementById(`${qKey}-ratings`);
+                if (!container) return;
+
+                container.innerHTML = [1, 2, 3, 4, 5].map(val => `
+                    <label class="flex flex-col items-center gap-1 cursor-pointer">
+                        <input type="radio" name="${qKey}" value="${val}" required class="accent-brand-500 w-4 h-4">
+                        <span class="text-xs text-slate-300 font-bold">${val}</span>
+                    </label>
+                `).join('');
+            });
+        }
+
+        // ==================== MEDIA RECORDER FUNCTIONALITY ====================
+        async function startRecording(lessonKey) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorders[lessonKey] = new MediaRecorder(stream);
+                audioChunks[lessonKey] = [];
+
+                mediaRecorders[lessonKey].ondataavailable = (e) => {
+                    if (e.data.size > 0) audioChunks[lessonKey].push(e.data);
+                };
+
+                mediaRecorders[lessonKey].onstop = () => {
+                    const audioBlob = new Blob(audioChunks[lessonKey], { type: mediaRecorders[lessonKey].mimeType || 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    const preview = document.getElementById(`audio-preview-${lessonKey}`);
+                    const container = document.getElementById(`audio-playback-container-${lessonKey}`);
+                    
+                    if (preview && container) {
+                        preview.src = audioUrl;
+                        container.classList.remove('hidden');
+                    }
+
+                    const rec = {
+                        url: audioUrl,
+                        date: new Date().toLocaleTimeString('ar-SA')
+                    };
+                    appState.recordings[lessonKey] = rec;
+                    persistRecording(lessonKey, rec, audioBlob); // حفظ نسخة قابلة للاسترجاع
+
+                    updateDashboard();
+                };
+
+                mediaRecorders[lessonKey].start();
+                toggleRecorderUI(lessonKey, true);
+                startTimer(lessonKey);
+
+            } catch (err) {
+                alert("تعذر الوصول إلى الميكروفون. يرجى التحقق من إعدادات الأمان والتراخيص في المتصفح.");
+            }
+        }
+
+        function stopRecording(lessonKey) {
+            if (mediaRecorders[lessonKey] && mediaRecorders[lessonKey].state !== 'inactive') {
+                mediaRecorders[lessonKey].stop();
+                // Stop microphone tracks
+                mediaRecorders[lessonKey].stream.getTracks().forEach(track => track.stop());
+                toggleRecorderUI(lessonKey, false);
+                stopTimer(lessonKey);
+            }
+        }
+
+        function toggleRecorderUI(lessonKey, isRecording) {
+            const btnStart = document.getElementById(`btn-start-${lessonKey}`);
+            const btnStop = document.getElementById(`btn-stop-${lessonKey}`);
+            const status = document.getElementById(`recorder-status-${lessonKey}`);
+            const waveform = document.getElementById(`waveform-${lessonKey}`);
+
+            if (isRecording) {
+                btnStart.disabled = true;
+                btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+                btnStop.disabled = false;
+                btnStop.classList.remove('opacity-50', 'cursor-not-allowed');
+                status.textContent = "جاري التسجيل الصوتي الان...";
+                status.classList.add('text-red-400');
+                if (waveform) waveform.classList.remove('opacity-40');
+            } else {
+                btnStart.disabled = false;
+                btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnStop.disabled = true;
+                btnStop.classList.add('opacity-50', 'cursor-not-allowed');
+                status.textContent = "تم التسجيل بنجاح!";
+                status.classList.remove('text-red-400');
+                if (waveform) waveform.classList.add('opacity-40');
+            }
+        }
+
+        function startTimer(lessonKey) {
+            let seconds = lessonKey === 'l4' ? 60 : 0;
+            const timerEl = document.getElementById(`timer-${lessonKey}`);
+
+            timerIntervals[lessonKey] = setInterval(() => {
+                if (lessonKey === 'l4') {
+                    seconds--;
+                    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const s = (seconds % 60).toString().padStart(2, '0');
+                    timerEl.textContent = `${m}:${s}`;
+                    if (seconds <= 0) stopRecording(lessonKey);
+                } else {
+                    seconds++;
+                    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const s = (seconds % 60).toString().padStart(2, '0');
+                    timerEl.textContent = `${m}:${s}`;
+                }
+            }, 1000);
+        }
+
+        function stopTimer(lessonKey) {
+            clearInterval(timerIntervals[lessonKey]);
+        }
+
+        function resetRecorder(lessonKey) {
+            const container = document.getElementById(`audio-playback-container-${lessonKey}`);
+            const timerEl = document.getElementById(`timer-${lessonKey}`);
+            if (container) container.classList.add('hidden');
+            if (timerEl) timerEl.textContent = lessonKey === 'l4' ? "01:00" : "00:00";
+            appState.recordings[lessonKey] = null;
+            persistRecordings();
+            scheduleAssignmentSync(lessonKey);
+            updateDashboard();
+        }
+
+        // ==================== FEEDBACK SUBMISSION ====================
+        function handleFeedbackSubmit(event) {
+            event.preventDefault();
+            let waUrl = null;
+            let record = null;
+            try {
+                const form = document.getElementById('feedback-form');
+                const val = n => { const c = form.querySelector(`input[name="${n}"]:checked`); return c ? Number(c.value) : null; };
+                const commentsEl = document.getElementById('feedback-comments');
+                record = {
+                    student: getStudentName() || 'غير محدد',
+                    q1: val('q1'), q2: val('q2'), q3: val('q3'),
+                    comments: commentsEl ? commentsEl.value.trim().slice(0, 500) : '',
+                    savedAtTs: Date.now()
+                };
+                const message = [
+                    '📋 استبيان رأي المتعلم - وحدة السفر والرحلات (B1)',
+                    `👤 الطالب: ${record.student}`,
+                    `1) سهولة الواجهة: ${record.q1}/5`,
+                    `2) الثقة في التحدث: ${record.q2}/5`,
+                    `3) جودة التسجيل والمحاكاة: ${record.q3}/5`,
+                    `💬 الملاحظات: ${record.comments || 'لا يوجد'}`
+                ].join('\n');
+
+                // فتح واتساب مباشرة (داخل حدث النقر ليتجنب حظر النوافذ) نحو رقم المعلم المحفوظ
+                if (teacherSettings.whatsapp) {
+                    waUrl = `https://wa.me/${teacherSettings.whatsapp}?text=${encodeURIComponent(message)}`;
+                    const w = window.open(waUrl, '_blank');
+                    if (w) { try { w.opener = null; } catch (e) { /* تجاهل */ } }
+                } else {
+                    showToast('لم يحدد المعلم رقم واتساب بعد؛ تم حفظ استبيانك فقط.', 'warn');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('حدث خطأ أثناء تجهيز الاستبيان.', 'error');
+            }
+
+            const link = document.getElementById('wa-fallback-link');
+            if (link && waUrl) { link.href = waUrl; link.classList.remove('hidden'); }
+            document.getElementById('feedback-form').classList.add('hidden');
+            document.getElementById('survey-success-message').classList.remove('hidden');
+            confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
+
+            if (record) {
+                showLoader('جاري حفظ الاستبيان...');
+                DB.push('surveys', record)
+                    .catch(e => console.error(e))
+                    .finally(hideLoader);
+            }
+        }
+
+        // ==================== TEACHER DASHBOARD LOGIC ====================
+        function updateDashboard() {
+            // Count recordings
+            const savedRecs = Object.values(appState.recordings).filter(r => r !== null).length;
+            document.getElementById('dash-audio-count').textContent = `${savedRecs} / 4`;
+            document.getElementById('dash-audio-progress').style.width = `${(savedRecs / 4) * 100}%`;
+
+            // Assessment progress
+            const assessed = appState.assessmentScores.filter(s => s > 0).length;
+            document.getElementById('dash-assessment-status').textContent = `${assessed} / 5`;
+            document.getElementById('dash-assessment-progress').style.width = `${(assessed / 5) * 100}%`;
+
+            // Table of Recordings
+            const tableBody = document.getElementById('dash-audio-table-body');
+            const lessonNames = {
+                l1: "الدرس 1: في المطار",
+                l2: "الدرس 2: في الفندق",
+                l3: "الدرس 3: في السوق",
+                l4: "الدرس 4: احكِ رحلتك"
+            };
+
+            tableBody.innerHTML = Object.keys(lessonNames).map(key => {
+                const rec = appState.recordings[key];
+                return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="p-3 font-semibold text-slate-200">${lessonNames[key]}</td>
+                        <td class="p-3">
+                            ${rec ? '<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> مكتمل</span>' : '<span class="text-slate-500">لم يسجل بعد</span>'}
+                        </td>
+                        <td class="p-3 text-slate-400">${rec ? rec.date : '--:--'}</td>
+                        <td class="p-3">
+                            ${rec ? `<audio src="${rec.url}" controls class="h-8 w-48"></audio>` : '<span class="text-slate-600">-</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateDashboardExtras();
+        }
+
+        function exportTeacherSummary() {
+            const summaryText = `
+تقويم الأداء التحدثي للطالب - وحدة السفر والرحلات (B1)
+--------------------------------------------------
+تاريخ التصدير: ${new Date().toLocaleDateString('ar-SA')}
+النقاط الإجمالية: ${appState.score}
+التسجيلات المكتملة: ${Object.values(appState.recordings).filter(r => r !== null).length} / 4
+مهام التقييم الذاتي المكتملة: ${appState.assessmentScores.filter(s => s > 0).length} / 5
+متوسط التقييم الذاتي: ${ (appState.assessmentScores.reduce((a,b)=>a+b,0) / 5).toFixed(1) } / 5
+--------------------------------------------------
+تم إنتاج هذا التقرير من اللوحة الرقمية التفاعلية.
+            `.trim();
+
+            const blob = new Blob([summaryText], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `تقرير_أداء_الطالب_السفر_والرحلات.txt`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
